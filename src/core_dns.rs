@@ -763,7 +763,7 @@ pub fn lookup(qname: &str,qtype: QueryType,server: (Ipv4Addr,u16)) -> Result<Dns
 
 pub fn lookup_ns(mut qname: String) -> Result<String,Box<dyn Error>> {
     let domain_slice:Vec<&str> = qname.split(".").collect();
-    let sli = qname.len();
+    let sli = domain_slice.len();
     if sli >= 3 {
         qname = domain_slice[sli-2].to_string() + "." + &domain_slice[sli-1].to_string()
     }
@@ -773,6 +773,20 @@ pub fn lookup_ns(mut qname: String) -> Result<String,Box<dyn Error>> {
     if result.answers.len() > 0 {
         if let DnsRecord::NS{ domain, host, ttl } = &result.answers[0] {
             return Ok(host.clone())
+        }else {
+            return Err("error".into())
+        }
+    }
+
+    Err("domain pas err".into())
+}
+
+pub fn lookup_a(mut nsname: String) -> Result<Ipv4Addr,Box<dyn Error>> {
+    let public_dns = "8.8.8.8".parse::<Ipv4Addr>().unwrap();
+    let result = lookup(nsname.as_str(),QueryType::A,(public_dns,53))?;
+    if result.answers.len() > 0 {
+        if let DnsRecord::A { domain,  addr, ttl } = &result.answers[0] {
+            return Ok(addr.clone())
         }else {
             return Err("error".into())
         }
