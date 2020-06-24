@@ -11,4 +11,10 @@ mod test {
             Err(e) => panic!("err: ",e),
         };
     }
+    #[test]
+    fn lp() {
+        let a = "www.dollarkiller.com";
+        let b:Vec<&str> = a.split(".").collect();
+        println!("b: {:?}",b);
+    }
 }

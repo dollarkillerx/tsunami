@@ -761,21 +761,22 @@ pub fn lookup(qname: &str,qtype: QueryType,server: (Ipv4Addr,u16)) -> Result<Dns
     DnsPacket::from_buffer(&mut res_buffer)
 }
 
-pub fn lookup_ns(qname: &str) -> Result<DnsPacket,Box<dyn Error>> {
-    let public_dns = "8.8.8.8".parse::<Ipv4Addr>().unwrap();
-    let result = lookup(qname,QueryType::NS,(public_dns,53))?;
-    for rec in &result.questions {
-        println!("Header: {:?}", rec);
-    }
-    for rec in &result.answers {
-        println!("Answer: {:?}", rec);
-    }
-    for rec in &result.authorities {
-        println!("Authority: {:?}", rec);
-    }
-    for rec in &result.resources {
-        println!("Resource: {:?}", rec);
+pub fn lookup_ns(mut qname: String) -> Result<String,Box<dyn Error>> {
+    let domain_slice:Vec<&str> = qname.split(".").collect();
+    let sli = qname.len();
+    if sli >= 3 {
+        qname = domain_slice[sli-2].to_string() + "." + &domain_slice[sli-1].to_string()
     }
 
-    Ok(result)
+    let public_dns = "8.8.8.8".parse::<Ipv4Addr>().unwrap();
+    let result = lookup(qname.as_str(),QueryType::NS,(public_dns,53))?;
+    if result.answers.len() > 0 {
+        if let DnsRecord::NS{ domain, host, ttl } = &result.answers[0] {
+            return Ok(host.clone())
+        }else {
+            return Err("error".into())
+        }
+    }
+
+    Err("domain pas err".into())
 }
